@@ -16,9 +16,6 @@ RUN pnpm install --ignore-scripts
 # Copy the rest of the project files
 COPY . .
 
-# Use the existing script prepare that already includes build and chmod
-RUN pnpm run prepare
-
 # Production stage - much lighter image
 FROM node:20.17.0-alpine AS production
 
