@@ -16,6 +16,9 @@ RUN pnpm install --ignore-scripts
 # Copy the rest of the project files
 COPY . .
 
+# Build the application
+RUN pnpm build
+
 # Production stage - much lighter image
 FROM node:20.17.0-alpine AS production
 
