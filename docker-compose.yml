@@ -1,17 +1,12 @@
 services:
-  figma-developer-mcp:
+  app:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: figma-developer-mcp
-    restart: unless-stopped
+      target: production
     ports:
-      - "${PORT}:${EXPOSE_PORT}"
+      - "3333:3333"
     environment:
       - NODE_ENV=production
-      - PORT=${PORT}
+      - PORT=3333
       - FIGMA_API_KEY=${FIGMA_API_KEY}
-      # We don't include FIGMA_API_KEY here for security reasons, it should be provided when starting the container
-    # Alternative commands for different execution modes
-    # command: ["pnpm", "start:cli"]  # For CLI mode
-    # command: ["pnpm", "start:http"] # For HTTP mode (default)
+    restart: unless-stopped
