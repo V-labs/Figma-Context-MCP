@@ -1,41 +1,44 @@
-FROM node:20-alpine AS base
+# Build stage
+FROM node:20.17.0-slim AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Use pnpm as the package manager
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm globally
+RUN npm install -g pnpm
 
-# Install dependencies
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Copy package files first
+COPY package.json pnpm-lock.yaml* ./
 
-# Copy source files
+# Install all dependencies
+RUN pnpm install --ignore-scripts
+
+# Copy the rest of the project files
 COPY . .
 
-# Build the application
-RUN pnpm build
+# Use the existing script prepare that already includes build and chmod
+RUN pnpm run prepare
 
-# Create a smaller production image
-FROM node:20-alpine AS production
+# Production stage - much lighter image
+FROM node:20.17.0-alpine AS production
 
+# Set working directory
 WORKDIR /app
 
-# Copy only the necessary files from the build stage
-COPY --from=base /app/dist ./dist
-COPY --from=base /app/package.json ./
-COPY --from=base /app/pnpm-lock.yaml ./
+# Install pnpm in production image (only what's needed)
+RUN npm install -g pnpm
+
+# Copy only package.json and pnpm-lock.yaml for installing production dependencies
+COPY package.json pnpm-lock.yaml* ./
 
 # Install only production dependencies
-RUN corepack enable && corepack prepare pnpm@latest --activate && \
-  pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --ignore-scripts
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3333
+# Copy compiled code from build stage
+COPY --from=builder /app/dist /app/dist
 
-# Expose the port the app runs on
+# Expose port defined in environment variables (default 3333)
 EXPOSE 3333
 
-# Command to run the application
-CMD ["node", "dist/cli.js"]
+# Command to start the application
+CMD ["pnpm", "start:http"] 
