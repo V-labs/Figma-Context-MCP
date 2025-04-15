@@ -1,0 +1,11 @@
+services:
+  app:
+    build:
+      context: .
+      target: production
+    ports:
+      - "${PORT}:${EXPOSE_PORT}"
+    environment:
+      - FIGMA_API_KEY=${FIGMA_API_KEY}
+      - PORT=${PORT}
+    restart: unless-stopped
